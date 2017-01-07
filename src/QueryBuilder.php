@@ -134,7 +134,7 @@ class QueryBuilder
         return $this;
     }
 
-    private function prepareConstant($parameter)
+    protected function prepareConstant($parameter)
     {
         if (!$this->uriParser->hasQueryParameter($parameter)) {
             return;
@@ -147,19 +147,19 @@ class QueryBuilder
         call_user_func($callback, $callbackParameter['value']);
     }
 
-    private function setIncludes($includes)
+    protected function setIncludes($includes)
     {
         $this->includes = array_filter(explode(',', $includes));
     }
 
-    private function setPage($page)
+    protected function setPage($page)
     {
         $this->page = (int)$page;
 
         $this->offset = ($page - 1) * $this->limit;
     }
 
-    private function setColumns($columns)
+    protected function setColumns($columns)
     {
         $columns = array_filter(explode(',', $columns));
 
@@ -168,7 +168,7 @@ class QueryBuilder
         array_map([$this, 'setColumn'], $columns);
     }
 
-    private function setColumn($column)
+    protected function setColumn($column)
     {
         if ($this->isRelationColumn($column)) {
             return $this->appendRelationColumn($column);
@@ -177,14 +177,14 @@ class QueryBuilder
         $this->columns[] = $column;
     }
 
-    private function appendRelationColumn($keyAndColumn)
+    protected function appendRelationColumn($keyAndColumn)
     {
         list($key, $column) = explode('.', $keyAndColumn);
 
         $this->relationColumns[$key][] = $column;
     }
 
-    private function fixRelationColumns()
+    protected function fixRelationColumns()
     {
         $keys = array_keys($this->relationColumns);
 
@@ -193,7 +193,7 @@ class QueryBuilder
         array_map($callback, $keys, $this->relationColumns);
     }
 
-    private function fixRelationColumn($key, $columns)
+    protected function fixRelationColumn($key, $columns)
     {
         $index = array_search($key, $this->includes);
 
@@ -202,14 +202,14 @@ class QueryBuilder
         $this->includes[$key] = $this->closureRelationColumns($columns);
     }
 
-    private function closureRelationColumns($columns)
+    protected function closureRelationColumns($columns)
     {
         return function ($q) use ($columns) {
             $q->select($columns);
         };
     }
 
-    private function setOrderBy($order)
+    protected function setOrderBy($order) 
     {
         $this->orderBy = [];
 
@@ -218,7 +218,7 @@ class QueryBuilder
         array_map([$this, 'appendOrderBy'], $orders);
     }
 
-    private function appendOrderBy($order)
+    protected function appendOrderBy($order)
     {
         if ($order == 'random') {
             $this->orderBy[] = 'random';
@@ -233,29 +233,29 @@ class QueryBuilder
         ];
     }
 
-    private function setGroupBy($groups)
+    protected function setGroupBy($groups)
     {
         $this->groupBy = array_filter(explode(',', $groups));
     }
 
-    private function setLimit($limit)
+    protected function setLimit($limit) 
     {
         $limit = ($limit == 'unlimited') ? null : (int)$limit;
 
         $this->limit = $limit;
     }
 
-    private function setWheres($parameters)
+    protected function setWheres($parameters) 
     {
         $this->wheres = $parameters;
     }
 
-    private function setAppends($appends)
+    protected function setAppends($appends)
     {
         $this->appends = explode(',', $appends);
     }
 
-    private function addWhereToQuery($where)
+    protected function addWhereToQuery($where)
     {
         extract($where);
 
@@ -299,7 +299,7 @@ class QueryBuilder
         }
     }
 
-    private function addOrderByToQuery($order)
+    protected function addOrderByToQuery($order)
     {
         if ($order == 'random') {
             return $this->query->orderBy(DB::raw('RAND()'));
@@ -312,81 +312,81 @@ class QueryBuilder
         $this->query->orderBy($column, $direction);
     }
 
-    private function applyCustomFilter($key, $operator, $value, $type = 'Basic')
+    protected function applyCustomFilter($key, $operator, $value, $type = 'Basic')
     {
         $callback = [$this, $this->customFilterName($key)];
 
         $this->query = call_user_func($callback, $this->query, $value, $operator, $type);
     }
 
-    private function isRelationColumn($column)
+    protected function isRelationColumn($column)
     {
         return (count(explode('.', $column)) > 1);
     }
 
-    private function isExcludedParameter($key)
+    protected function isExcludedParameter($key)
     {
         return in_array($key, $this->excludedParameters);
     }
 
-    private function hasWheres()
+    protected function hasWheres() 
     {
         return (count($this->wheres) > 0);
     }
 
-    private function hasIncludes()
+    protected function hasIncludes()
     {
         return (count($this->includes) > 0);
     }
 
-    private function hasAppends()
+    protected function hasAppends()
     {
         return (count($this->appends) > 0);
     }
 
-    private function hasGroupBy()
+    protected function hasGroupBy()
     {
         return (count($this->groupBy) > 0);
     }
 
-    private function hasLimit()
+    protected function hasLimit()
     {
         return ($this->limit);
     }
 
-    private function hasOffset()
+    protected function hasOffset()
     {
         return ($this->offset != 0);
     }
 
-    private function hasRelationColumns()
+    protected function hasRelationColumns()
     {
         return (count($this->relationColumns) > 0);
     }
 
-    private function hasTableColumn($column)
+    protected function hasTableColumn($column)
     {
         return (Schema::hasColumn($this->model->getTable(), $column));
     }
 
-    private function hasCustomFilter($key)
+    protected function hasCustomFilter($key)
     {
         $methodName = $this->customFilterName($key);
 
         return (method_exists($this, $methodName));
     }
 
-    private function setterMethodName($key)
+    protected function setterMethodName($key)
     {
         return 'set' . studly_case($key);
     }
 
-    private function customFilterName($key)
+    protected function customFilterName($key)
     {
         return 'filterBy' . studly_case($key);
     }
 
-    private function addAppendsToModel($result)
+    protected function addAppendsToModel($result)
     {
         $result->map(function ($item) {
             $item->append($this->appends);
@@ -407,7 +407,7 @@ class QueryBuilder
      *
      * @throws \InvalidArgumentException
      */
-    private function basePaginate($perPage = null, $columns = ['*'], $pageName = 'page', $page = null)
+    protected function basePaginate($perPage = null, $columns = ['*'], $pageName = 'page', $page = null)
     {
         $page = $page ?: BasePaginator::resolveCurrentPage($pageName);
 

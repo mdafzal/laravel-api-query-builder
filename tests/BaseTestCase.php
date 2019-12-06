@@ -2,7 +2,7 @@
 
 namespace Tests;
 
-class BaseTestCase extends \PHPUnit_Framework_TestCase
+class BaseTestCase extends \PHPUnit\Framework\TestCase
 {
     protected function assertArrayContainsArray($needle, $haystack)
     {
